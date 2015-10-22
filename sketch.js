@@ -1,27 +1,36 @@
 //developed from examples here: 
 
-
-var PenNotes = [48, 50, 52, 55, 57, 60, 62, 64, 67, 69];
-var userNotes = [];
+var PenNotes = [48, 50, 52, 55, 57, 60, 62, 64, 67, 69]; //array to hold the pentomic scale
+var userNotes = []; //array to hold the user generated scale
+var MusicNotes = [];
 var serial; // variable to hold an instance of the serialport library
 var portName = '/dev/cu.usbmodem1421'; // fill in your serial port name here
-var lastTime = 0;
-var osc;
-var userInput; // value to hold user inputed Midi Notes
+var lastTime = 0; //timer to keep steps from overlapping
+var osc; // hold oscillator library
+var noteInput = []; // value to hold user inputed Midi Notes
 var submit; // value to hold button to submit
 var selectButton; // value to hold button to submit song notes
 var instructions; // text for checkbox
+var boxSelection
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  selectButton = createCheckbox("what");//create checkbox
-  instructions = createDiv("User Designed Scale? (Check for Yes)");
-  instructions.position (30, 350);
-  selectButton.position(0, 350);
-  userInput = createInput();
-  userInput.position(0, 310);
-  submit = createButton("Submit Midi Note");
-  submit.position(150, 310);
+  for (var n = 0; n<PenNotes.length; n++){
+      MusicNotes.push(PenNotes[n]);
+    }
+  selectButton = createCheckbox();//create checkbox
+  selectButton.position(0, 350); // position checkbox
+  selectButton.changed(UserScale); // detect change in state of checkbox
+  instructions = createDiv("Check to Use Custom Scale"); // what to do
+  instructions.position (30, 350); // position the checkbox
+  for(var i = 0; i<10; i++){
+  noteInput[i] = createInput(); // allow user to input scale midi values
+  noteInput[i].size(25);
+  noteInput[i].position(0+i*50, 310); // put it somewhere, like here
+  }
+  submit = createButton("Submit Midi Notes"); // say hey, I made the changes
+  submit.position(500, 310); // put it here, cause that looks nice... well makes sense anyway
+  submit.mousePressed(EnterNote);
   serial = new p5.SerialPort(); // make a new instance of the serialport library
   serial.on('list', printList); // set a callback function for the serialport list event
   serial.on('connected', serverConnected); // callback for connecting to the server
@@ -31,8 +40,7 @@ function setup() {
   serial.on('close', portClose); // callback for the port closing
   serial.list(); // list the serial ports
   serial.open(portName); // open a serial port
-  // A triangle oscillator
-  osc = new p5.SinOsc();
+  osc = new p5.SinOsc(); // A sine oscillator
   // Start silent
   osc.start();
   osc.amp(0);
@@ -42,11 +50,10 @@ function setup() {
 function playNote(note, duration) {
   osc.freq(midiToFreq(note));
   // fade(value, seconds from now)
-  osc.fade(0.25, 0.1);
+  osc.fade(.25, 0.1);
 }
 
 function draw() {
-  
   var w = width / PenNotes.length;
   for (var i = 0; i < PenNotes.length; i++) {
     var x = i * w;
@@ -65,7 +72,34 @@ function draw() {
     rect(x, 0, w - 1, 300, 20); // key design
     //print(mouseY);
   }
+}
 
+function EnterNote() {
+  userNotes.splice(0, userNotes.length);
+  for (var i=0; i<10; i++){
+  userNotes.push(noteInput[i].value());
+  noteInput[i].value("");
+    //print(userNotes[i]);
+  }
+}
+
+
+function UserScale() {
+  boxSelection = !boxSelection
+  MusicNotes.splice(0, MusicNotes.length);
+  if (boxSelection === true && userNotes.length>0){
+    for (var m = 0; m<10; m++){
+      MusicNotes.push(userNotes[m]);
+      //print(MusicNotes.length);
+      //print("userNotes " + userNotes[m]);
+    }
+  }
+  else{
+    for (var n = 0; n<PenNotes.length; n++){
+      MusicNotes.push(PenNotes[n]);
+      //print("PenNotes " + PenNotes[n]);
+    }
+  }
 }
 
 // When we click
@@ -73,7 +107,7 @@ function mousePressed() {
   // Map mouse to the key index
   var key = floor(map(mouseX, 0, width, 0, PenNotes.length));
   if (mouseY < 300){
-  playNote(PenNotes[key]);
+  playNote(MusicNotes[key]);
   }
 }
 
@@ -109,7 +143,7 @@ function serialEvent() {
   }
   if (inData === 1) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[0]);
+      playNote(MusicNotes[0]);
       lastTime = millis();
     }
   }
@@ -120,63 +154,63 @@ function serialEvent() {
 
   if (inData === 2) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[1]);
+      playNote(MusicNotes[1]);
       lastTime = millis();
     }
   }
   
   if (inData === 3) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[2]);
+      playNote(MusicNotes[2]);
       lastTime = millis();
     }
   }
   
   if (inData === 4) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[3]);
+      playNote(MusicNotes[3]);
       lastTime = millis();
     }
   }
   
   if (inData === 5) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[4]);
+      playNote(MusicNotes[4]);
       lastTime = millis();
     }
   }
   
   if (inData === 6) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[5]);
+      playNote(MusicNotes[5]);
       lastTime = millis();
     }
   }
   
   if (inData === 7) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[6]);
+      playNote(MusicNotes[6]);
       lastTime = millis();
     }
   }
   
    if (inData === 8) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[7]);
+      playNote(MusicNotes[7]);
       lastTime = millis();
     }
   }
   
    if (inData === 9) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[8]);
+      playNote(MusicNotes[8]);
       lastTime = millis();
     }
   }
   
    if (inData === 10) {
     if (millis() - lastTime > 50) {
-      playNote(PenNotes[9]);
+      playNote(MusicNotes[9]);
       lastTime = millis();
     }
   }
